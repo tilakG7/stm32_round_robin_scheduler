@@ -1,0 +1,9 @@
+*~
+/.cproject
+/.project
+/.settings/
+/Debug/
+/STM32*
+/stm32*
+/.DS_Store
+/*.launch
