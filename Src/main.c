@@ -49,10 +49,10 @@ void taskDelay(uint32_t delayTicks)
 }
 
 
-
-__attribute__((naked)) void initSchedulerStack(uint32_t size)
+// Changes MSP to scheduler task stack start address
+__attribute__((naked)) void initSchedulerStack(uint32_t schedTaskStackAddr)
 {
-	__asm volatile("MSR MSP, %0" : : "r"(size) : );
+	__asm volatile("MSR MSP, %0" : : "r"(schedTaskStackAddr) : );
 	__asm volatile("BX LR");
 }
 
@@ -143,10 +143,10 @@ void updateNextTask(void)
 __attribute__((naked)) void changeSP()
 {
 	// 1. Initialize PSP to Task 1 address
-	__asm volatile("PUSH {LR}"); 		// preserve LR to go back to main
+	__asm volatile("PUSH {LR}"); 		// preserve LR to go back to main (step required since naked function does not do automatically)
 	__asm volatile("BL getPSPValue");
 	__asm volatile("MSR PSP, R0");
-	__asm volatile("POP {LR}");
+	__asm volatile("POP {LR}");         // safe to bring back LR from stack since no other function calls
 
 	// 2. Change SP to PSP in CONTROL register
 	__asm volatile ("MOV R0, #0x02");
@@ -186,7 +186,7 @@ int main(void)
 
 	initSysTick(TICK_HZ);
 
-	// change stack pointer to PSP
+	// change from MSP to pointer to PSP
 	changeSP();
 
 	task1_handler();
